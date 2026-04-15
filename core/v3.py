@@ -1,4 +1,4 @@
-from moviepy import AudioFileClip, ImageClip, concatenate_videoclips
+from moviepy.editor import AudioFileClip, ImageClip, concatenate_videoclips
 import os
 
 def assemble_video(images, audios, output_path="output.mp4"):
@@ -15,12 +15,10 @@ def assemble_video(images, audios, output_path="output.mp4"):
         for img, aud in zip(images, audios):
             try:
                 audio_clip = AudioFileClip(aud)
-                clip = (
-                    ImageClip(img)
-                    .with_duration(audio_clip.duration)
-                    .resized(new_size=(1280, 720))
-                    .with_audio(audio_clip)
-                )
+                clip = ImageClip(img)
+                clip = clip.set_duration(audio_clip.duration)
+                clip = clip.resize(newsize=(1280, 720))
+                clip = clip.set_audio(audio_clip)
 
                 audio_clips.append(audio_clip)
                 clips.append(clip)
@@ -47,9 +45,3 @@ def assemble_video(images, audios, output_path="output.mp4"):
             clip.close()
         for audio_clip in audio_clips:
             audio_clip.close()
-io_codec="aac"
-
-    return output_pathio_codec="aac"
-    )
-
-    return output_path
