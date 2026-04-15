@@ -62,15 +62,33 @@ with left:
     topic = st.text_input("Topic", placeholder="e.g. How black holes are formed")
 
     st.markdown("### Video Type")
-    video_type = st.radio("", ["Educational", "Marketing", "Story"], horizontal=True)
+    video_type = st.radio(
+        "Video Type",
+        ["Educational", "Marketing", "Story"],
+        horizontal=True
+    )
 
     st.markdown("### Duration")
-    duration = st.slider("", 1, 5, 2)
-    duration_map = {1: "1 Minute", 2: "3 Minutes", 5: "5 Minutes"}
-    duration_label = duration_map.get(duration, "1 Minute")
+    duration = st.slider(
+        "Duration (minutes)",
+        1, 5, 2
+    )
+
+    duration_map = {
+        1: "1 Minute",
+        2: "2 Minutes",
+        3: "3 Minutes",
+        4: "4 Minutes",
+        5: "5 Minutes"
+    }
+
+    duration_label = duration_map[duration]
 
     st.markdown("### Language")
-    language = st.selectbox("", ["English", "Hindi", "Spanish"])
+    language = st.selectbox(
+        "Language",
+        ["English", "Hindi", "Spanish"]
+    )
 
     generate_btn = st.button("✨ Generate Video")
 
@@ -99,6 +117,7 @@ if generate_btn:
         st.error("Please enter a topic")
         st.stop()
 
+    # Clean temp folders
     if os.path.exists("temp_assets"):
         shutil.rmtree("temp_assets")
 
@@ -108,20 +127,22 @@ if generate_btn:
     with st.spinner("Generating video..."):
         try:
             script = generate_script(topic, video_type, duration_label, language)
+
             scenes = split_into_scenes(script)
             visuals = create_scene_visuals(scenes, topic)
             audio = generate_voiceover(scenes, language)
 
-            if len(visuals) != len(audio):
-                st.error("Mismatch in visuals and audio")
+            if not visuals or not audio or len(visuals) != len(audio):
+                st.error("Scene mismatch error. Try again.")
                 st.stop()
 
-            output = f"outputs/{topic.replace(' ', '_')}.mp4"
+            safe_name = topic.replace(" ", "_").replace("/", "_")
+            output = f"outputs/{safe_name}.mp4"
 
             assemble_video(visuals, audio, output)
 
             st.session_state.video_path = output
-            st.success("✅ Video Generated!")
+            st.success("✅ Video Generated Successfully!")
 
         except Exception as e:
             st.error(f"Error: {e}")
