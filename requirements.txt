@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 streamlit
 openai
 edge-tts
@@ -16,3 +17,12 @@ openai
 imageio
 imageio-ffmpeg
 >>>>>>> 43bbe316785669a311c6ac506acfc4f4a132fab9
+=======
+streamlit
+moviepy==1.0.3
+imageio==2.31.1
+imageio-ffmpeg==0.4.9
+pillow
+requests
+edge-tts
+>>>>>>> 7a4006e9d54cd7e3d858f74953a100824b2349ba
