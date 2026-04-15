@@ -16,13 +16,24 @@ def _build_prompt(scene, topic):
     )
 
 
-def _try_generate(url, headers, timeout):
+def _try_request(url, headers, timeout):
     try:
         r = requests.get(url, headers=headers, timeout=timeout)
-        if r.status_code == 200 and len(r.content) > 1000:
-            return r.content
+        if r.status_code == 200:
+            content = r.content
+
+            # reject empty/too small responses
+            if not content or len(content) < 5000:
+                return None
+
+            # reject HTML responses
+            if b"<html" in content[:200].lower():
+                return None
+
+            return content
     except:
         return None
+
     return None
 
 
@@ -43,22 +54,27 @@ def _generate_image(scene, topic, output_dir, retries=3):
 
     for attempt in range(retries):
         for url in urls:
-            time.sleep(1 + attempt)
+            time.sleep(1 + attempt * 1.5)
 
-            content = _try_generate(url, headers, timeout=70)
+            content = _try_request(url, headers, timeout=80)
 
             if content:
-                img = Image.open(BytesIO(content)).convert("RGB")
-                img = img.resize((1280, 720), Image.Resampling.LANCZOS)
-                img.save(path, "JPEG", quality=95)
+                try:
+                    img = Image.open(BytesIO(content)).convert("RGB")
+                    img = img.resize((1280, 720), Image.Resampling.LANCZOS)
+                    img.save(path, "JPEG", quality=95)
 
-                _image_cache[path] = True
-                return path
+                    _image_cache[path] = True
+                    return path
 
-    # ---------------- FALLBACK (HIGH QUALITY TEXT SCENE) ----------------
+                except Exception as e:
+                    logger.warning(f"Invalid image response: {e}")
+                    continue
+
+    # ---------------- FALLBACK IMAGE ----------------
     logger.warning(f"Fallback image for scene {scene['scene_num']}")
 
-    img = Image.new("RGB", (1280, 720), (10, 10, 15))
+    img = Image.new("RGB", (1280, 720), (15, 15, 20))
     draw = ImageDraw.Draw(img)
 
     title = f"Scene {scene['scene_num']}"
